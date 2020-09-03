@@ -1,0 +1,12 @@
+1
+wc Data/data-shell/data/pdb/m*
+2
+wc Data/data-shell/data/pdb/m* -l > ../Data_Course_BALDWIN/Assignments/Assignment_2/m_lines.txt
+3
+cut Data/data-shell/data/animals.txt -d "," -f 2 | sort -d -u > ../Data_Course_BALDWIN/Assignments/Assignment_2/unique_animals.txt
+4
+cut Data/BioLog_Plate_Data.csv -d "," -f 5 | sort -d -u | head -n 32 > ../Data_Course_BALDWIN/Assignments/Assignment_2/unique_C-substrates.txt
+5
+wc Data/data-shell/data/*.txt | sort -n | tail -n 2 | head -n 1
+6
+ find Data/data-shell/many_files/ -name "*.txt" -exec Bash Data/data-shell/scripts/sum_lines.sh {} \; > ../Data_Course_BALDWIN/Assignments/Assignment_2/file_sums.txt
