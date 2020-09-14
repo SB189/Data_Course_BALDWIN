@@ -21,8 +21,13 @@
 # Vectors are 1-dimensional series of values in some order
 1:10 # ':' only works for integers
 letters # built-in pre-made vector of a - z
-
-
+LETTERS
+1+10
+x <- 3
+class(1:10)
+class(1)
+class(1L)
+class(333L)
 
 vector1 <- c(1,2,3,4,5,6,7,8,9,10)
 vector2 <- c(5,6,7,8,4,3,2,1,3,10)
@@ -42,6 +47,8 @@ data("iris") # load it like this
 
 # For built-in data, there's often a 'help file'
 ?iris
+View(iris)
+
 
 # "Iris" is a 'data frame.' 
 # Data frames are 2-dimensional (think Excel spreadsheet)
@@ -59,10 +66,14 @@ head(dat)
 # You can access specific columns of a "data frame" by name using '$'
 dat$Species
 dat$Sepal.Length
+dat$Species
 
 # You can also use square brackets to get specific 1-D or 2-D subsets of a data frame (rows and/or columns)
 dat[1,1] # [Rows, Columns]
 dat[1:3,5]
+
+let <- c(1,3,5,7,9)
+letters[let]
 
 # Plotting ####
 
@@ -87,7 +98,8 @@ str(dat)
 # Let's try
 nums <- c(1,1,2,2,2,2,3,3,3,4,4,4,4,4,4,4,5,6,7,8,9)
 class(nums) # make sure it's numeric
-
+length(nums)
+?plot()
 # convert to a factor
 as.factor(nums) # show in console
 nums_factor <- as.factor(nums) #assign it to a new object as a factor
@@ -103,7 +115,9 @@ plot(nums_factor)
 plot(nums, main = "My Title", xlab = "My axis label", ylab = "My other axis label")
 
 
-?jpeg()
+jpeg("./exampleplot.jpg")
+plot(nums, main = "My Title", xlab = "My axis label", ylab = "My other axis label")
+dev.off()
 
 
 dev.off()
@@ -125,8 +139,8 @@ data.frame(Clothes = col1, Numbers = col2, Factor_numbers = col3) # colname = ve
 df1 = data.frame(Clothes = col1, Numbers = col2, Factor_numbers = col3) # assign to df1
 df1 # look at it...note column names are what we gave it.
 
-
-
+dat3 <- data.frame(first = dat$Species[1:20], second = dat$Sepal.Length[1:20])
+View(dat3)
 
 # Practice subsetting ####
 
@@ -139,6 +153,7 @@ df1 # look at it...note column names are what we gave it.
 
 # WRITING OUT FILES FROM R ####
 ?write.csv()
+write.csv(dat3,"./BALDWIN_first_file.csv")
 
 
 # Write your new object "dat3" to a file named "LASTNAME_first_file.csv" in your PERSONAL git repository
