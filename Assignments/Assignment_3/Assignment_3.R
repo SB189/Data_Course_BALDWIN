@@ -114,7 +114,7 @@ plot(nums_factor)
 ?plot()
 plot(nums, main = "My Title", xlab = "My axis label", ylab = "My other axis label")
 
-
+#--SB--
 jpeg("./exampleplot.jpg")
 plot(nums, main = "My Title", xlab = "My axis label", ylab = "My other axis label")
 dev.off()
@@ -139,12 +139,14 @@ data.frame(Clothes = col1, Numbers = col2, Factor_numbers = col3) # colname = ve
 df1 = data.frame(Clothes = col1, Numbers = col2, Factor_numbers = col3) # assign to df1
 df1 # look at it...note column names are what we gave it.
 
+#--SB--
 dat3 <- data.frame(first = dat$Species[1:20], second = dat$Sepal.Length[1:20])
 View(dat3)
 
 # Practice subsetting ####
 
 # Make a data frame from the first 20 rows of iris that has only Species and Sepal.Length columns
+
 # save it into an object called "dat3"
 
 
@@ -158,7 +160,7 @@ write.csv(dat3,"./BALDWIN_first_file.csv")
 
 # Write your new object "dat3" to a file named "LASTNAME_first_file.csv" in your PERSONAL git repository
 
-
+write.csv(dat3,"./BALDWIN_first_file.csv")
 
 
 ### for-loops in R ####
@@ -181,18 +183,38 @@ for(i in levels(dat$Species)){
 
 
 # YOUR REMAINING HOMEWORK ASSIGNMENT (Fill in with code) ####
-
+data("iris")
+dat <- iris
 # 1.  Make a scatterplot of Sepal.Length vs Sepal.Width. See if you can get the points to be colored by "Species"
+?plot()
+plot(x = dat$Sepal.Length, y = dat$Sepal.Width) #data error, col does colors
 
+class(dat$Species) # factor, should work for coloring
+?col #Matrices...
+View(dat)
+
+#I tried a few things, I cannot figure out the syntax to specify species to this color command.
 
 # 2.  Write the code to save it (with meaningful labels) as a jpeg file
-
-
+#--SB-- I added some meaningful labels
+jpeg("./Baldwin_Sepal_Length_VS_Width")
+plot(x = dat$Sepal.Length, y = dat$Sepal.Width, main = "My Plot", xlab = "Sepal_Length", ylab = "Sepal_Width")
+dev.off()
 # 3.  Subset the Iris data set to only include rows from the setosa and virginica Species
 
-
+#datasubset <- data.frame(first = dat$Species[1:20], second = dat$Sepal.Length[1:20]) --EXAMPLE LINE--
+cow <- c(1:50,101:150)
+View(cow)
+vectormonkey <- c("setosa", "virginica")
+vectorcow <- as.factor(vectormonkey)
+datsubset <- data.frame(Species = dat$Species[cow], Sepal_Length = dat$Sepal.Length[cow])
+str(iris$Species)
+?data.frame()
 # 4.  Write code to save this new subset as a .csv file called setosa_and_virginica.csv
-
+# write.csv(dat3,"./BALDWIN_first_file.csv")
+cow <- c(1:50,101:150)
+datsubset <- data.frame(Species = dat$Species[cow], Sepal_Length = dat$Sepal.Length[cow])
+write.csv(datsubset, "./setosa_and_virginica.csv")
 
 # 5.  Upload this R script (with all answers filled in and tasks completed) to canvas and GitHub
       # I should be able to run your R script and get all the plots created and saved, etc.
