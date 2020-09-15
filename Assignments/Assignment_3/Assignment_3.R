@@ -212,6 +212,8 @@ str(iris$Species)
 ?data.frame()
 # 4.  Write code to save this new subset as a .csv file called setosa_and_virginica.csv
 # write.csv(dat3,"./BALDWIN_first_file.csv")
+data("iris")
+dat <- iris
 cow <- c(1:50,101:150)
 datsubset <- data.frame(Species = dat$Species[cow], Sepal_Length = dat$Sepal.Length[cow])
 write.csv(datsubset, "./setosa_and_virginica.csv")
