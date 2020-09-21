@@ -1,0 +1,9 @@
+Q1)I only saw one thing, but read.csv() appears to set "header" to true automatically.
+Q2)The main difference I saw was that the delimiter for csv1 is a comma and csv2 was a semicolon.
+Q3)I don't know which files do this, but apparently some are stored as colon seperated values instead of comma seperated values. You could not load these directly in without csv2.
+Q4)Perhaps you meant change it from character to factor, but I will stick with what the question says.
+df <-  read.csv("../../Data/landdata-states.csv", colClasses = c(State = "character"))
+# I inserted an extra field colClasses = c(columnnamehere = "desiredtype")
+Q5)summary(df$Home.Value)
+Q6) It gives me the first row in the fourth column, which is "Home.Value"
+Q7) I get an error, but I think you may be referring to col = orange or some color like that. It changes colors.
