@@ -7,7 +7,7 @@ library(carData)
 library(RColorBrewer)
 library(colorblindr)
 
-
+data(mtcars)
 # Load the first data set we will work with (built-in to ggplot)
 data("midwest", package = "ggplot2")
 
@@ -217,7 +217,7 @@ ggplot(random_data, aes(x=x, y=y) ) +
   geom_bin2d() +
   theme_bw()
 
-
-
-
-
+ggplot(midwest, aes(x=area, y=poptotal)) + geom_point() + geom_smooth(method = "lm")
+View(mtcars)
+q <- ggplot(mtcars, aes(x=mtcars$mpg, y=mtcars$hp)) + geom_point(size=3, color = "firebrick") + geom_smooth(method="lm", color = "green")
+q + labs(x = "Miles Per Gallon", y = "Horsepower", title = "Efficiency and Power") + theme_dark()
