@@ -68,6 +68,8 @@ store <- iris$Sepal.Length - avg1
 thing1[,2] <- data.frame(store)
 thing1 <- thing1[order(thing1$store), ]
 #View(thing1)
+
+# It is not giving me any errors or a messed up graph to work with...
 p4 <- ggplot(thing1,aes(x = iris.Species, y = store, label=store)) + 
   geom_bar(stat = "identity", aes(fill = iris.Species), width = .5) +
   scale_fill_manual() +
