@@ -1,0 +1,1 @@
+The maximum horsepower for all cars in mtcars and automatic  cars in mtcars and mtcars with a displacement equal to  or less than two hundred are:  335 ,  472  and  175  respectively.
