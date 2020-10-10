@@ -57,3 +57,30 @@ utah_long = gather(utah,key = Religion, value = Proportion, -c(1:3) )
 ```
 
 And don't forget about the amazing combination of group_by() %>% summarize()
+
+
+
+
+
+
+Pop.Group
+mean(Religious, na.rm = TRUE)
+1
+1
+0.7323700
+2
+4
+0.7483686
+3
+5
+0.7747065
+4
+6
+0.7883500
+5
+2
+0.8170544
+6
+3
+0.9095000
+Showing 1 to 6 of 6 entries, 2 total columns
