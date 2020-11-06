@@ -1,0 +1,119 @@
+---
+title: "Assignment_9"
+author: "Trevor D. Millar"
+date: "10/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading and cleaing the data
+The data for the graduate school admissions statistics are loaded into R and saved as a dataframe named "df". The data are 'cleaned' by changing the column of admits from 0s and 1s to FALSE and TRUE respectively. The data are further cleaned by changing the integer values of rank to 'factor' data types for use in the analysis (these are non-continuous data). 
+
+
+```{r, echo =FALSE, message=FALSE,results='hide',warning=FALSE}
+library(tidyverse)
+library(modelr)
+library(MASS)
+library(patchwork)
+
+df <- read_csv("../../Data/GradSchool_Admissions.csv")
+
+
+df$admit <- as.logical(df$admit)
+df$rank <- as.factor(df$rank)
+
+names(df)
+
+
+```
+
+## Analysis
+
+Here, we make as accurate a model as is possible given the data we have. First, we create the model (using different variables to attempt to find any correlations with the data), then we calculate the mean square residual value as a proxy for the accuracy of the model to the true data. The model with the lowest mean square residual value is chosen to model our data. 
+
+
+
+```{r, echo=FALSE, }
+mod_GPA <- glm(data = df,admit ~ gpa, family = "binomial")
+print("Mean square residuals of the model based on GPA:")
+mean(mod_GPA$residuals^2)
+mod_GRE <- glm(data = df,admit ~ gre, family = "binomial")
+print("Mean square residuals of the model based on GRE:")
+mean(mod_GRE$residuals^2)
+mod_RANK <- glm(data = df,admit ~ rank, family = "binomial")
+print("Mean square residuals of the model based on Rank:")
+mean(mod_RANK$residuals^2)
+mod_full <- glm(data = df,admit ~ gpa + gre + rank, family = "binomial")
+mod_RANK <- glm(data = df,admit ~ rank, family = "binomial")
+print("Mean square residuals of the model based on all factors:")
+mean(mod_full$residuals^2)
+mod_full_w_interactions <- glm(data = df,admit ~ gpa * gre * rank, family = "binomial")
+print("Mean square residuals of the model based on all factors and their interactions:")
+mean(mod_full_w_interactions$residuals^2)
+
+```
+It looks like the "best" model (based on mean square residuals) to this point is admissions as a function of GRE score. Let's see if we can optimize a more comprehensive model.
+
+```{r, echo=FALSE}
+step <- stepAIC(mod_full_w_interactions)
+print("Formula for the optimized model:")
+step$formula
+
+mod_step <- glm(data = df, formula = step$formula)
+print("Mean square residiuals of our optimized model:")
+mean(mod_step$residuals)
+
+
+```
+
+
+It looks like our optimized model is much more accurate than our model using GRE alone (based on mean square residual values alone). Let's further explore why our optimized model is better by adding some predictions to our model as to the likelihood any one student will be admitted to grad school according to his or her GRE score alone.  We will look at some graphs of our GRE only model then we will look at the more comprehensive model. 
+
+```{r, echo=FALSE}
+df_pred <- add_predictions(df, mod_GRE)
+ggplot(df_pred, aes(x = gre, y = pred))+
+  geom_point()
+
+```
+ 
+In the graph above, one very apparent issue arises. Because there is only one variable to create predictions with, we end up with a basic linear formula (y = mx + b). Because of this, all of our predictions end up in a straight line. This is (obviously), not the type of model we want because in real life we can not have a negative probability of being accepted into graduate school no matter how terrible students we are. 
+ 
+We need a more comprehensive model in order to break this linear cycle. We also learn here that you should not trust mean-squared residual values alone when making models! Even though our model based on GRE score alone was the best of the single variable models, it was still lousy compared to our optimized model!
+
+Lets take a look at the summary of our comprehensive model and see which variables are significant. An * indicates a statistically significant variable. 
+
+
+```{r, echo=FALSE}
+summary(mod_full_w_interactions)
+```
+
+
+Our optimized model is using every statistically significant variable and interaction. This model follows the following formula: admit ~ gpa + gre + rank + gpa:gre, where gpa:gre is the interaction of those two variables. Let's make a few graphs of our model. 
+
+## Graphs
+
+```{r, echo=FALSE}
+df_pred_full <- add_predictions(df, mod_step)
+p_full_gre <- ggplot(df_pred_full, aes(x = gre, y= pred, color = rank))+
+  ggtitle("Full model")+
+  geom_point()
+p_full_gpa <- ggplot(df_pred_full, aes(x = gpa, y= pred, color = rank))+
+  ggtitle("Full model")+
+  geom_point()
+
+p_full_gpa + p_full_gre 
+
+```
+
+
+As we can see, there seems to be a positive correlation between both GPA and GRE scores with admittance probability. That is to say, the higher your GPA and or GRE score, the greater your chances of getting accepted. The colors on the graph are colored by school rank. It is apparent in both of the above graphs that the better and more well known your undergraduate institution is, the higher chance you will make it in to grad school. Even those students who went to a rank 1 school but got bad grades had a better chance thank students who went to a rank 3 or 4 school but got 4.0s!
+
+## Conclusions of our analysis
+
+In summary, what we can learn from this data set are the following conclusions:
+1. Go to the best undergraduate institution you can. Even if your GPA isn't as good as it would be in other programs, you will still have a better shot at getting to grad school .
+2. Study hard for the GRE. Your GRE school is one of the pillars of your acceptance into graduate school. 
+3. Work hard to get good grades in your undergraduate program, although the reputation of your school and your GRE score may both out - weigh your GPA. 

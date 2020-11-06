@@ -1,24 +1,24 @@
 ---
-title: "Assignment_9_Work"
-output: html_document
+title: "Assignment_9"
 author: "Steven Baldwin"
+output:
+  html_document:
+    code_folding: hide
 ---
 
+The GradSchool_Admissions.csv data is loaded into a dataframe named "df".
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-```{r, message=FALSE,echo=FALSE,warning=FALSE}
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 #Load in packages. Can't miss something if I do them all.
 library(tidyverse)
 library(tidyr)
 library(modelr)
-library(GGally)
-library(lindia)
-library(skimr)
 library(patchwork)
-library(caret)
-library(modelr)
 library(MASS)
+library(knitr)
 #Load in Admissions.
 df <- read.csv("../../Data/GradSchool_Admissions.csv")
 #View(df)
@@ -31,9 +31,10 @@ df <- read.csv("../../Data/GradSchool_Admissions.csv")
 #best_model <- stepAIC(mod1, direction="both")
 #df <- gather_predictions(df,best_model)
 ```
-First we will look at the predictive power of GPA, GRE and rank over admission individually
-using logistic regression.
-```{r, message=FALSE,echo=TRUE,warning=FALSE}
+### Creating Models
+First I shall created a few models, the third of which is just to check on the importance of rank. These logistic regression models (1-3) are; admission rate as a function of GPA and rank, admission rate as a function of GRE score and Rank and Admission as a function of rank respectively. I didn't treat rank as a factor yet, just to see if I could get strong results from the numerical form.
+
+```{r class.source = 'fold-hide', message=FALSE,echo=TRUE,warning=FALSE}
 mod1 = glm(admit ~ gpa * rank, data = df, family = "binomial")
 df$binom.pred1 <- predict(mod1, type = "response")
 df$binom.resid1 <- residuals(mod1, type = "response")
@@ -48,26 +49,32 @@ df$binom.resid3 <- residuals(mod3, type = "response")
 
 ```
 
+## Summary stats of models 1, 2&3
 Next I shall run the summary() command on each model to see its strength. <br/>
 The predictive power of GPA...
-```{r, message=FALSE,echo=FALSE,warning=FALSE}
-summary(mod1)
-
+```{r class.source = 'fold-hide', message=FALSE,echo=FALSE,warning=FALSE}
+summary1 <- summary(mod1)
+summary1[["coefficients"]]
 ```
 
 The predictive power of GRE score...
-```{r, message=FALSE,echo=FALSE,warning=FALSE}
-summary(mod2)
-
+```{r class.source = 'fold-hide', message=FALSE,echo=FALSE,warning=FALSE}
+summary2 <- summary(mod2)
+summary2[["coefficients"]]
 ```
 
 The predictive power of school rank...
-```{r, message=FALSE,echo=FALSE,warning=FALSE}
-summary(mod3)
-
+```{r class.source = 'fold-hide', message=FALSE,echo=FALSE,warning=FALSE}
+summary3 <- summary(mod3)
+summary3[["coefficients"]]
 ```
 
-These summaries suggest that GPA and GRE are not enough to explain the model alone, though rank is a significant predictor of acceptance. This does not however tell us anything meaningful, we know that hardcore universities are hard to get into. <br/> The graphs below show admission probability as determined by our models.
+These summaries suggest that GPA and GRE are not enough to explain the model alone, though rank is a significant predictor of acceptance. This does not however tell us anything meaningful, we know that high-ranking universities are hard to get into. <br/> The graphs below show admission probability as determined by our models.
+</br>
+
+### Models 1&2 Plots
+
+</br>
 
 ```{r, message=FALSE,echo=FALSE,warning=FALSE}
 add_predictions(df,mod1,type="response") %>%
@@ -83,32 +90,52 @@ add_predictions(df,mod2,type="response") %>%
   labs(title="GRE vs Admissions",x="GRE",y="Admission Chance",color = "Rank")
 ```
 
+## Creating the optimal model
 Then I use the stepAIC command on all the predictors added together and it should give me the best model.
-```{r, message=FALSE,warning=FALSE}
-combined_model <- glm(data=df,formula=admit ~ gre + gpa * rank,family="binomial")
+I also treat rank as a factor when creating this model.
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+combined_model <- glm(data=df,formula=admit ~ gre + gpa * as.factor(rank),family="binomial")
 best_model <- stepAIC(combined_model, direction="both")
+```
+The model that we get is: admit ~ gre + gpa + rank
 
-```
 Here is a summary of this new model.
-```{r, message=FALSE,echo=FALSE,warning=FALSE}
-summary(best_model)
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+bestsum <- summary(best_model)
+bestsum[["coefficients"]]
 ```
-<br/>Here is the (hopefully) best model plotted on a graph of GPA vs Admission Rate.
+As we can see this new model is significant and much stronger than the initial ones.
+
+<br/>
+
+## Model Prediction Graphs
+Here is the best model plotted on a graph of GPA vs Admission Rate. The lines do not represent the models themselves but just show the trend of the model's predictions. The points y values are directly from the model. It is unfortunately hard to put GPA and GRE against admittance on the same plot without ranking one of them or something, so they are done separately.
+
+</br>
+
 ```{r, message=FALSE,echo=FALSE,warning=FALSE}
 df <- gather_predictions(df,best_model)
 add_predictions(df,best_model,type="response") %>%
   ggplot(aes(x=gpa,y=pred,color=factor(rank))) +
-  geom_smooth() +
-  labs(title = "AIC model of GPA vs Admission Rate",x="GPA",y="Admission Rate",color="Rank")
+  geom_smooth(method="lm") +
+  labs(title = "AIC model of GPA vs Admission Rate",x="GPA",y="Admission Rate",color="Rank") +
+  geom_point()
 ```
 <br/>Here is that same model with GRE vs Admission Rate instead.
+
+</br>
+
+
 ```{r, message=FALSE,echo=FALSE,warning=FALSE}
 add_predictions(df,best_model,type="response") %>%
   ggplot(aes(x=gre,y=pred,color=factor(rank))) +
-  geom_smooth() +
-  labs(title = "AIC model of GRE score vs Admission Rate",x="GRE",y="Admission Rate",color="Rank")
+  geom_smooth(method="lm") +
+  labs(title = "AIC model of GRE score vs Admission Rate",x="GRE",y="Admission Rate",color="Rank") +
+  geom_point()
 ```
-<br/> And now to compare our three important models with anova tests to see if they have quality differences. <br/>
+<br/> 
+## ANOVA
+And now to compare our three important models with anova tests to see if they have quality differences. <br/>
 Anova comparison of the GPA explanatory model (model one) vs the GRE variant (model two)
 ```{r, message=FALSE,echo=FALSE,warning=FALSE}
 anova(mod1,mod2)
@@ -121,10 +148,11 @@ Anova comparison of model two against the stepAIC model.
 ```{r, message=FALSE,echo=FALSE,warning=FALSE}
 anova(mod2,best_model)
 ```
-I believe that these results mean that model 1 & 2 are not significantly different, but the AIC model is significantly different from each of those.This is assuming that these scores are something like scores on some sort of standard curve <br/> <br/>
+I believe that these results mean that model 1 & 2 are not significantly different because of the p-values, but the AIC model is significantly different from each of those.This is assuming that these scores are something like scores on some sort of standard curve <br/> <br/>
 
-MSE for each model
-```{r,echo=FALSE,warning=FALSE}
+## MSE
+Mean Square Errors for models 1,2 and the AIC model.
+```{r class.source = 'fold-hide',echo=TRUE,warning=FALSE}
 mod1mse <- mean(residuals(mod1)^2)
 mod2mse <- mean(residuals(mod2)^2)
 modAICmse <- mean(residuals(best_model)^2)
@@ -141,4 +169,6 @@ Model three MSE:
 ```{r,echo=FALSE,warning=FALSE}
 modAICmse
 ```
-Since the AIC model was considered separate from the other two by an ANOVA and it has the lowest Mean Square Error, I would say that it is the best logistic model for this situation. It appears that GRE and GPA are far stronger predictors when they are together.
+
+## Conclusion
+Since the AIC model was considered distinguishable from the other two by an ANOVA and it has the lowest Mean Square Error, I would say that it is the best logistic model for this situation. It appears that GRE and GPA are far stronger predictors when they are together.
