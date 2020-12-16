@@ -10,14 +10,16 @@ library(forecast)
 library(RColorBrewer)
 library(viridis)
 library(patchwork)
-library(LMERConvenienceFunctions)
+library(lme4)
+library(gifski)
+library(lmerTest)
 #?arima()
 #?rollsum()
 #diff()
 #?prophet
 #View(covid_data)
 
-covid_data <- readRDS("./data/complete_covid_dataset")
+covid_data <- readRDS("./Data/complete_covid_dataset")
 #class(covid_data$date)
 covid_data$date <- as.Date(covid_data$date)
 covid_data$deaths <- as.numeric(covid_data$deaths)
@@ -166,21 +168,18 @@ saveRDS(side_by_side_deaths,"./Output/patched_deaths.RDS")
 
 
 #Making models ANOVA can use.
-lowdeaths <- lmer(data=low,formula=deaths~(1 | county/elevation) + date)
-moderatedeaths <- lmer(data=moderate,formula=deaths~(1 | county/elevation) + date)
-highdeaths <- lmer(data=high,formula=deaths~(1 | county/elevation) + date)
-extremedeaths <- lmer(data=extreme,formula=deaths~(1 | county/elevation) + date)
+#lowdeaths <- lmer(data=low,formula=deaths~(1 | county/elevation) + date)
+#moderatedeaths <- lmer(data=moderate,formula=deaths~(1 | county/elevation) + date)
+#highdeaths <- lmer(data=high,formula=deaths~(1 | county/elevation) + date)
+#extremedeaths <- lmer(data=extreme,formula=deaths~(1 | county/elevation) + date)
 
-lowcases <- lmer(data=low,formula=cases~(1 | county/elevation) + date)
-moderatecases <- lmer(data=moderate,formula=cases~(1 | county/elevation) + date)
-highcases <- lmer(data=high,formula=cases~(1 | county/elevation) + date)
-extremecases <- lmer(data=extreme,formula=cases~(1 | county/elevation) + date)
+#lowcases <- lmer(data=low,formula=cases~(1 | county/elevation) + date)
+#moderatecases <- lmer(data=moderate,formula=cases~(1 | county/elevation) + date)
+#highcases <- lmer(data=high,formula=cases~(1 | county/elevation) + date)
+#extremecases <- lmer(data=extreme,formula=cases~(1 | county/elevation) + date)
   
-  View(lowdeaths)
-  View(moderatedeaths)
-  View(highdeaths)
   
-  anova(lowdeaths,extremedeaths)
+ # anova(lowdeaths,extremedeaths)
 
 #Suggestions for models...
 #glm(deaths ~ elevation * date, data = full_dataset)
@@ -195,27 +194,68 @@ extremecases <- lmer(data=extreme,formula=cases~(1 | county/elevation) + date)
 #+scale_color_viridis(option="magma")
 #Chloropleth map
 #?geom_contour() Works best with a grid, not a grid.
-
+#?Prophet
 #This refused to save properly, so I used the snipping tool.
-elevation_map <- ggmap::register_google(key="???")
-ggmap(get_googlemap(center=c(lon = -100,lat = 36),zoom = 4,
+  #testingdata <- filter(covid_data,state=="Utah") # To shorten loading times.
+  
+  
+  
+ggmap::register_google(key="???") #INSERT KEY
+
+elevation_map <- ggmap(get_googlemap(center=c(lon = -100,lat = 36),zoom = 4,
                     scale = 1,maptype = 'roadmap')) +
   geom_point(data=covid_data, aes(x=lon,y=lat,alpha=cases,color=elev_group))
+ggsave(elevation_map,"./Output/Elevation_Plot")
+ggsave("./Output/Elevation_Plot.jpg")
 
-#?ggsave()
+#This makes it more suitable for the map...
+covid_data <- covid_data %>% filter(!is.na(date))
+#unique(covid_data$date)
+
+#cases
+ggmap(get_map(center=c(lon = -100,lat = 36),zoom = 4,
+              scale = 1,maptype = 'toner')) +
+  geom_point(data=covid_data, aes(x=lon,y=lat,color=cases/population)) +
+  scale_color_viridis() +
+  transition_time(date) +
+  labs(title = 'Date: {frame_time}')
+anim_save("./Output/covid_progression.gif")
+
+#deaths
+ggmap(get_map(center=c(lon = -100,lat = 36),zoom = 4,
+              scale = 1,maptype = 'toner')) +
+  geom_point(data=covid_data, aes(x=lon,y=lat,color=deaths/population)) +
+  scale_color_viridis() +
+  transition_time(date) +
+  labs(title = 'Date: {frame_time}')
+anim_save("./Output/covid_deaths_progression.gif")
+
+#Modeling Retry...
+#lmer(date = covid_data,
+ #    formula = deaths/cases ~ date + (1|state/county/elevation))
+
+small_covi <- covid_data[sample(6000),]
+#lmer(data=low,formula=deaths~(1 | county/elevations) + date)
+#lmer(data=moderate,formula=deaths~(1 | county/elevations) + date)
+#lmer(data=high,formula=deaths~(1 | county/elevations) + date)
+#lmer(data=extreme,formula=deaths~(1 | county/elevations) + date)
+
+mod1 <- glm(covid_data,family=gaussian(),
+            formula = sqrt(deaths/population) ~ date + elevation)
+mod2 <- glm(covid_data,family=gaussian(),
+            formula = sqrt(cases/population) ~ date + elevation)
+
+summod1 <- summary(mod1)
+saveRDS(summod1,"./Output/deaths_model_summary.RDS")
+
+summod2 <- summary(mod2)
+saveRDS(summod2,"./Output/cases_model_summary.RDS")
 
 
-elevation_map <- ggmap::register_google(key="???")
-ggmap(get_googlemap(center=c(lon = -100,lat = 36),zoom = 4,
-                    scale = 1,maptype = 'roadmap')) +
-  geom_point(data=covid_data, aes(x=lon,y=lat,alpha=cases,color=elev_group)) +
-transition_states(
-  elevation,
-  transition_length = 2,
-  state_length = 1
-) +
-  enter_fade() +
-  exit_shrink() +
-  ease_aes('sine-in-out')
+#fullmod <- lmer(data = small_covi,
+ #               formula = deaths/cases ~ date + (1 | state/county/elevation))
+ 
 
-?prophet
+
+
+
