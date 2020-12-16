@@ -1,0 +1,65 @@
+#Load Packages
+library(ggmap) 
+#New to me.
+library(tidyverse)
+library(tidyr)
+library(sp)
+library(rgdal) #GIVES ELEVATION
+library(elevatr) #also elevation
+#Also new ?sp
+library(housingData) 
+#geocounty()
+library(janitor)
+library(raster) 
+#New as ever
+library(modelr)
+library(zoo)
+?zoo
+#New
+#devtools::install_github("hafen/housingData")
+# Getting ggspatial from github instead of CRAN
+#####
+#Optional
+# library(devtools)
+# ggspatial optional method. Only neccessary once.
+#devtools::install_github("paleolimbot/ggspatial")
+#?zoo
+#?merge.zoo()
+
+# Read in county data
+#####
+#ccdata <- read.csv("./Data/us-counties.csv") #covid county data
+# View(ccdata)
+
+# Not interested in daily data, firt try to make it for the whole pandemic.
+#####
+#ccdata1 <- arrange(ccdata,county) #arrange by county
+
+countycoords <- geoCounty
+county_storage <- data.frame(str_to_sentence(countycoords$rMapCounty),
+                             str_to_sentence(countycoords$rMapState))
+pickedcoords <- dplyr::select(countycoords,c("lon","lat"))
+ll_prj <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+elevations <- get_elev_point(pickedcoords,ll_prj)
+elevations2 <- data.frame(county_storage, elevations@coords,elevations@data$elevation)
+#View(elevations2)
+#thing <- elevations@coords
+#View(county_storage)
+saveRDS(elevations2,"./data/county_elevations")
+saveRDS(elevations,"./data/raw_elevations_output")
+#elevations <- readRDS("./data/raw_elevations_output")
+#Use readRDS() next
+#?get_elev_point(./county_elevations)
+#Use full_join() to get this together with NYT
+class(elevations)
+#elevations <- readRDS("./county_elevations")
+#first column must be longitude, second must be latitude.
+#Capitalization problems? string_to_lower() str_to_sentence() First to capital
+#Can I make a map?
+#myLocation <- c(49,-130,23,-60)
+#myLocation <- c(lon=-100,lat=36)
+#ggmap::register_google(key="???")
+#ggmap(get_googlemap(center=c(lon = -100,lat = 36),zoom = 10,
+#                   scale = 2,maptype = 'roadmap')) +
+# geom_point()
+
